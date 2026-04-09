@@ -5,10 +5,15 @@ class StartScreen {
     constructor() {
         this.startScreen = document.getElementById('startScreen');
         this.gameScreen = document.getElementById('gameScreen');
+        this.leaderboardScreen = document.getElementById('leaderboardScreen');
         this.startForm = document.getElementById('startForm');
         this.playerNameInput = document.getElementById('playerName');
         this.gameModeSelect = document.getElementById('gameModeSelect');
         this.startDifficulty = document.getElementById('startDifficulty');
+        this.openLeaderboardButton = document.getElementById('openLeaderboard');
+        this.closeLeaderboardButton = document.getElementById('closeLeaderboard');
+        this.leaderboardList = document.getElementById('leaderboardList');
+        this.appInstance = null;
 
         this.initialize();
     }
@@ -16,6 +21,8 @@ class StartScreen {
     initialize() {
         this.startForm.addEventListener('submit', (event) => this.handleSubmit(event));
         this.gameModeSelect.addEventListener('change', () => this.updateDifficultyState());
+        this.openLeaderboardButton.addEventListener('click', () => this.openLeaderboard());
+        this.closeLeaderboardButton.addEventListener('click', () => this.closeLeaderboard());
         this.updateDifficultyState();
         this.playerNameInput.focus();
     }
@@ -35,7 +42,55 @@ class StartScreen {
         this.startScreen.style.display = 'none';
         this.gameScreen.style.display = 'flex';
 
-        new TicTacToeApp({ playerName, gameMode, difficulty });
+        if (!this.appInstance) {
+            this.appInstance = new TicTacToeApp({
+                playerName,
+                gameMode,
+                difficulty,
+                onReturnToMenu: () => this.showStartScreen()
+            });
+        } else {
+            this.appInstance.startNewSession({ playerName, gameMode, difficulty });
+        }
+    }
+
+    showStartScreen() {
+        this.gameScreen.style.display = 'none';
+        this.startScreen.style.display = 'flex';
+        this.playerNameInput.focus();
+    }
+
+    openLeaderboard() {
+        this.startScreen.style.display = 'none';
+        this.leaderboardScreen.style.display = 'flex';
+        this.renderLeaderboard();
+    }
+
+    closeLeaderboard() {
+        this.leaderboardScreen.style.display = 'none';
+        this.startScreen.style.display = 'flex';
+        this.playerNameInput.focus();
+    }
+
+    renderLeaderboard() {
+        const entries = TicTacToeApp.getLeaderboardEntries();
+        if (!entries.length) {
+            this.leaderboardList.innerHTML = '<p class="empty-message">Aun no hay puntuaciones</p>';
+            return;
+        }
+
+        const rows = entries.map((entry, index) => {
+            return `
+                <div class="leaderboard-row">
+                    <div class="leaderboard-rank">#${index + 1}</div>
+                    <div class="leaderboard-name">${entry.name}</div>
+                    <div class="leaderboard-meta">Pts: ${entry.points}</div>
+                    <div class="leaderboard-meta">W:${entry.wins} D:${entry.draws} L:${entry.losses}</div>
+                </div>
+            `;
+        }).join('');
+
+        this.leaderboardList.innerHTML = rows;
     }
 }
 
@@ -43,11 +98,13 @@ class StartScreen {
  * App - Controlador principal de la aplicación
  */
 class TicTacToeApp {
-    constructor({ playerName = 'Jugador', gameMode = 'ai', difficulty = 'medium' } = {}) {
+    constructor({ playerName = 'Jugador', gameMode = 'ai', difficulty = 'medium', onReturnToMenu } = {}) {
         this.playerName = playerName;
         this.gameMode = gameMode;
         this.gameLogic = new GameLogic();
         this.aiPlayer = new AIPlayer(difficulty);
+        this.onReturnToMenu = onReturnToMenu;
+        this.statsKey = this.getStatsKey();
         
         // Stats
         this.playerScore = 0;
@@ -77,6 +134,7 @@ class TicTacToeApp {
         this.machinePointsElement = document.getElementById('machinePoints');
         this.winMessageElement = document.getElementById('winMessage');
         this.closeWinMessageButton = document.getElementById('closeWinMessage');
+        this.backToMenuButton = document.getElementById('backToMenuBtn');
 
         this.aiThinking = false;
 
@@ -108,6 +166,7 @@ class TicTacToeApp {
         this.resetStatsButton.addEventListener('click', () => this.resetStats());
         this.themeToggleButton.addEventListener('click', () => this.toggleTheme());
         this.closeWinMessageButton.addEventListener('click', () => this.hideWinMessage());
+        this.backToMenuButton.addEventListener('click', () => this.returnToMenu());
         this.boardStyleSelect.addEventListener('change', (e) => {
             this.applyBoardStyle(e.target.value);
         });
@@ -132,6 +191,24 @@ class TicTacToeApp {
         }
         if (this.difficultySelect) {
             this.difficultySelect.disabled = !isAiMode;
+        }
+    }
+
+    startNewSession({ playerName, gameMode, difficulty }) {
+        this.playerName = playerName;
+        this.gameMode = gameMode;
+        this.aiPlayer.setDifficulty(difficulty);
+        this.statsKey = this.getStatsKey();
+        this.resetSessionStats();
+        this.applyGameMode();
+        this.resetGame();
+        this.loadStats();
+    }
+
+    returnToMenu() {
+        this.resetGame();
+        if (typeof this.onReturnToMenu === 'function') {
+            this.onReturnToMenu();
         }
     }
 
@@ -311,10 +388,13 @@ class TicTacToeApp {
      * @param {string} state - 'X', 'O' o 'draw'
      */
     endGame(state) {
+        let pointsEarned = 0;
+
         if (state === 'X') {
             this.statusElement.textContent = '🎉 ¡Ganaste!';
             this.playerScore++;
-            this.playerPoints += 3;
+            pointsEarned = 3;
+            this.playerPoints += pointsEarned;
             this.updateScoreDisplay();
             this.showWinMessage();
         } else if (state === 'O') {
@@ -325,10 +405,13 @@ class TicTacToeApp {
         } else if (state === 'draw') {
             this.statusElement.textContent = '🤝 Empate';
             this.drawScore++;
-            this.playerPoints += 1;
+            pointsEarned = 1;
+            this.playerPoints += pointsEarned;
             this.machinePoints += 1;
             this.updateScoreDisplay();
         }
+
+        this.updateLeaderboard(state, pointsEarned);
 
         this.saveStats();
     }
@@ -434,11 +517,24 @@ class TicTacToeApp {
         }
     }
 
+    resetSessionStats() {
+        this.playerScore = 0;
+        this.machineScore = 0;
+        this.drawScore = 0;
+        this.playerPoints = 0;
+        this.machinePoints = 0;
+        this.updateScoreDisplay();
+    }
+
+    getStatsKey() {
+        return `tictactoe_stats_${this.playerName.toLowerCase()}`;
+    }
+
     /**
      * Guarda las estadísticas en localStorage
      */
     saveStats() {
-        localStorage.setItem('tictactoe_stats', JSON.stringify({
+        localStorage.setItem(this.statsKey, JSON.stringify({
             playerScore: this.playerScore,
             machineScore: this.machineScore,
             drawScore: this.drawScore,
@@ -451,7 +547,7 @@ class TicTacToeApp {
      * Carga las estadísticas de localStorage
      */
     loadStats() {
-        const saved = localStorage.getItem('tictactoe_stats');
+        const saved = localStorage.getItem(this.statsKey);
         if (saved) {
             const stats = JSON.parse(saved);
             this.playerScore = stats.playerScore || 0;
@@ -461,6 +557,41 @@ class TicTacToeApp {
             this.machinePoints = stats.machinePoints || 0;
             this.updateScoreDisplay();
         }
+    }
+
+    updateLeaderboard(state, pointsEarned) {
+        if (this.gameMode !== 'ai') {
+            return;
+        }
+
+        const key = 'tictactoe_leaderboard';
+        const saved = localStorage.getItem(key);
+        const entries = saved ? JSON.parse(saved) : [];
+        const normalizedName = this.playerName.trim() || 'Jugador';
+        const existing = entries.find(entry => entry.name.toLowerCase() === normalizedName.toLowerCase());
+
+        if (existing) {
+            existing.points += pointsEarned;
+            existing.wins += state === 'X' ? 1 : 0;
+            existing.draws += state === 'draw' ? 1 : 0;
+            existing.losses += state === 'O' ? 1 : 0;
+        } else {
+            entries.push({
+                name: normalizedName,
+                points: pointsEarned,
+                wins: state === 'X' ? 1 : 0,
+                draws: state === 'draw' ? 1 : 0,
+                losses: state === 'O' ? 1 : 0
+            });
+        }
+
+        entries.sort((a, b) => b.points - a.points);
+        localStorage.setItem(key, JSON.stringify(entries));
+    }
+
+    static getLeaderboardEntries() {
+        const saved = localStorage.getItem('tictactoe_leaderboard');
+        return saved ? JSON.parse(saved) : [];
     }
 }
 

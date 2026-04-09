@@ -29,7 +29,20 @@
                 </select>
 
                 <button type="submit" class="btn btn-primary start-button">Empezar</button>
+                <button type="button" id="openLeaderboard" class="btn btn-secondary">Ver leaderboard</button>
             </form>
+        </div>
+    </div>
+
+    <div id="leaderboardScreen" class="leaderboard-screen" style="display: none;">
+        <div class="leaderboard-card">
+            <div class="leaderboard-header">
+                <h2>🏅 Leaderboard</h2>
+                <button id="closeLeaderboard" class="btn btn-secondary">Volver al menu</button>
+            </div>
+            <div id="leaderboardList" class="leaderboard-list">
+                <p class="empty-message">Aun no hay puntuaciones</p>
+            </div>
         </div>
     </div>
 
@@ -38,6 +51,7 @@
         <header class="header">
             <div class="header-actions">
                 <button id="themeToggle" class="btn btn-theme" aria-label="Cambiar tema" title="Cambiar entre modo claro y oscuro">🌙 Modo oscuro</button>
+                <button id="backToMenuBtn" class="btn btn-secondary">Menu</button>
             </div>
             <h1>🎮 Tres en Raya</h1>
             <p class="subtitle">Juega contra la máquina</p>
