@@ -174,26 +174,27 @@ class GameLogic {
 
             for (let move of availableMoves) {
                 // Simular movimiento de IA (O)
-                const pieces = this.machinePieces;
                 let removedPiece = null;
+                const oldMachinePieces = [...this.machinePieces];
                 
-                if (pieces.length >= this.maxPiecesPerPlayer) {
-                    removedPiece = pieces.shift();
+                if (this.machinePieces.length >= this.maxPiecesPerPlayer) {
+                    removedPiece = this.machinePieces[0];
+                    this.machinePieces = this.machinePieces.slice(1);
                     this.board[removedPiece] = null;
                 }
                 
                 this.board[move] = 'O';
-                pieces.push(move);
+                this.machinePieces = [...this.machinePieces, move];
+                const oldPlayer = this.currentPlayer;
                 this.currentPlayer = 'X';
                 
                 const score = this.minimax(depth + 1, false);
                 
                 // Deshacer movimiento
                 this.board[move] = null;
-                pieces.pop();
-                this.currentPlayer = 'O';
+                this.machinePieces = oldMachinePieces;
+                this.currentPlayer = oldPlayer;
                 if (removedPiece !== null) {
-                    pieces.unshift(removedPiece);
                     this.board[removedPiece] = 'O';
                 }
                 
@@ -207,26 +208,27 @@ class GameLogic {
 
             for (let move of availableMoves) {
                 // Simular movimiento de jugador (X)
-                const pieces = this.playerPieces;
                 let removedPiece = null;
+                const oldPlayerPieces = [...this.playerPieces];
                 
-                if (pieces.length >= this.maxPiecesPerPlayer) {
-                    removedPiece = pieces.shift();
+                if (this.playerPieces.length >= this.maxPiecesPerPlayer) {
+                    removedPiece = this.playerPieces[0];
+                    this.playerPieces = this.playerPieces.slice(1);
                     this.board[removedPiece] = null;
                 }
                 
                 this.board[move] = 'X';
-                pieces.push(move);
+                this.playerPieces = [...this.playerPieces, move];
+                const oldPlayer = this.currentPlayer;
                 this.currentPlayer = 'O';
                 
                 const score = this.minimax(depth + 1, true);
                 
                 // Deshacer movimiento
                 this.board[move] = null;
-                pieces.pop();
-                this.currentPlayer = 'X';
+                this.playerPieces = oldPlayerPieces;
+                this.currentPlayer = oldPlayer;
                 if (removedPiece !== null) {
-                    pieces.unshift(removedPiece);
                     this.board[removedPiece] = 'X';
                 }
                 

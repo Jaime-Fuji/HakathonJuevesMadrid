@@ -7,7 +7,89 @@
     <link rel="stylesheet" href="src/assets/styles.css">
 </head>
 <body>
-    <div id="app" class="container">
+    <!-- Pantalla de Inicio -->
+    <div id="startScreen" class="startup-container">
+        <div class="startup-card">
+            <div class="startup-header">
+                <h1>🎮 Tres en Raya</h1>
+                <p class="startup-subtitle">Juega contra la máquina</p>
+            </div>
+
+            <form id="startForm" class="startup-form">
+                <!-- Input de nombre -->
+                <div class="form-group">
+                    <label for="playerName">¿Cómo te llamas?</label>
+                    <input 
+                        type="text" 
+                        id="playerName" 
+                        class="form-input" 
+                        placeholder="Ingresa tu nombre"
+                        required
+                    >
+                </div>
+
+                <!-- Selector de dificultad -->
+                <div class="form-group">
+                    <label>Elige el nivel de dificultad:</label>
+                    <div class="difficulty-options">
+                        <label class="difficulty-option">
+                            <input type="radio" name="difficulty" value="very-easy">
+                            <div class="difficulty-card easy-card">
+                                <div class="difficulty-emoji">😄</div>
+                                <div class="difficulty-name">Muy Fácil</div>
+                                <div class="difficulty-desc">10% inteligente</div>
+                            </div>
+                        </label>
+
+                        <label class="difficulty-option">
+                            <input type="radio" name="difficulty" value="easy">
+                            <div class="difficulty-card easy-card">
+                                <div class="difficulty-emoji">😊</div>
+                                <div class="difficulty-name">Fácil</div>
+                                <div class="difficulty-desc">40% inteligente</div>
+                            </div>
+                        </label>
+
+                        <label class="difficulty-option">
+                            <input type="radio" name="difficulty" value="medium" checked>
+                            <div class="difficulty-card medium-card">
+                                <div class="difficulty-emoji">🤔</div>
+                                <div class="difficulty-name">Medio</div>
+                                <div class="difficulty-desc">70% inteligente</div>
+                            </div>
+                        </label>
+
+                        <label class="difficulty-option">
+                            <input type="radio" name="difficulty" value="hard">
+                            <div class="difficulty-card hard-card">
+                                <div class="difficulty-emoji">🧠</div>
+                                <div class="difficulty-name">Difícil</div>
+                                <div class="difficulty-desc">95% inteligente</div>
+                            </div>
+                        </label>
+
+                        <label class="difficulty-option">
+                            <input type="radio" name="difficulty" value="very-hard">
+                            <div class="difficulty-card hard-card">
+                                <div class="difficulty-emoji">👾</div>
+                                <div class="difficulty-name">Muy Difícil</div>
+                                <div class="difficulty-desc">Imposible</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Botón de inicio -->
+                <button type="submit" class="btn btn-primary btn-large">
+                    ¡Empezar Juego!
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Pantalla del Juego -->
+    <div id="gameScreen" class="game-container" style="display: none;">
+        <div id="app" class="container">
         <header class="header">
             <div class="header-actions">
                 <button id="themeToggle" class="btn btn-theme" aria-label="Cambiar tema" title="Cambiar entre modo claro y oscuro">🌙 Modo oscuro</button>
@@ -29,6 +111,17 @@
                 <div class="stat">
                     <span class="label">Empates</span>
                     <span class="value" id="drawScore">0</span>
+                </div>
+            </div>
+
+            <div class="game-stats">
+                <div class="stat-item">
+                    <span class="label">⏱️ Tiempo</span>
+                    <span class="value" id="gameTimer">0:00</span>
+                </div>
+                <div class="stat-item">
+                    <span class="label">🎯 Movimientos</span>
+                    <span class="value" id="moveCount">0</span>
                 </div>
             </div>
         </div>
@@ -55,39 +148,24 @@
         </div>
 
         <div class="difficulty">
-            <label for="difficultySelect">Dificultad:</label>
+            <label for="difficultySelect">Dificultad del juego:</label>
             <select id="difficultySelect">
+                <option value="very-easy">Muy Fácil</option>
                 <option value="easy">Fácil</option>
                 <option value="medium" selected>Medio</option>
                 <option value="hard">Difícil</option>
+                <option value="very-hard">Muy Difícil</option>
             </select>
         </div>
 
-        <div class="board-customizer">
-            <label for="boardStyleSelect">Estilo del tablero:</label>
-            <select id="boardStyleSelect">
-                <option value="glass" selected>Cristal</option>
-                <option value="metal">Metal</option>
-                <option value="classic">Clásico</option>
-                <option value="neon">Neón</option>
-                <option value="wood">Madera</option>
-                <option value="custom">Personalizado</option>
-            </select>
-
-            <div class="color-controls">
-                <div class="color-control">
-                    <label for="boardBgColor">Color tablero</label>
-                    <input type="color" id="boardBgColor" value="#e2eeff">
-                </div>
-                <div class="color-control">
-                    <label for="cellBgColor">Color casillas</label>
-                    <input type="color" id="cellBgColor" value="#ffffff">
-                </div>
+        <div class="match-history">
+            <h3>📊 Histórico de Partidas</h3>
+            <div id="historyContainer" class="history-list">
+                <p class="empty-message">Sin partidas aún</p>
             </div>
-
-            <button id="boardStyleResetBtn" class="btn btn-secondary">Reiniciar estilo</button>
         </div>
-    </div>
+        </div>
+        </div>
 
     <script src="src/app/game-logic.js"></script>
     <script src="src/app/ai-player.js"></script>
