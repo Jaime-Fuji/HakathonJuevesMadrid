@@ -262,6 +262,11 @@ class TicTacToeApp {
      * Actualiza la interfaz
      */
     updateUI() {
+        // Asegurar que tenemos las celdas correctas
+        if (this.cellElements.length === 0) {
+            this.cellElements = this.appContainer.querySelectorAll('.cell');
+        }
+
         // Actualizar celdas
         this.cellElements.forEach((cell, index) => {
             const value = this.gameLogic.getBoard()[index];
