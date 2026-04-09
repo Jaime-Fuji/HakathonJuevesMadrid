@@ -3,31 +3,154 @@
  */
 class StartScreen {
     constructor() {
-        this.startForm = document.getElementById('startForm');
         this.startScreen = document.getElementById('startScreen');
         this.gameScreen = document.getElementById('gameScreen');
+        this.leaderboardScreen = document.getElementById('leaderboardScreen');
+        this.customizerScreen = document.getElementById('customizerScreen');
+        this.startForm = document.getElementById('startForm');
         this.playerNameInput = document.getElementById('playerName');
+        this.gameModeSelect = document.getElementById('gameModeSelect');
+        this.startDifficulty = document.getElementById('startDifficulty');
+        this.openLeaderboardButton = document.getElementById('openLeaderboard');
+        this.closeLeaderboardButton = document.getElementById('closeLeaderboard');
+        this.openCustomizerButton = document.getElementById('openCustomizer');
+        this.closeCustomizerButton = document.getElementById('closeCustomizer');
+        this.playFromCustomizerButton = document.getElementById('playFromCustomizer');
+        this.leaderboardList = document.getElementById('leaderboardList');
+        this.appInstance = null;
 
         this.initialize();
     }
 
     initialize() {
-        this.startForm.addEventListener('submit', (e) => this.handleSubmit(e));
+        this.startForm.addEventListener('submit', (event) => this.handleSubmit(event));
+        this.gameModeSelect.addEventListener('change', () => this.updateDifficultyState());
+        this.openLeaderboardButton.addEventListener('click', () => this.openLeaderboard());
+        this.closeLeaderboardButton.addEventListener('click', () => this.closeLeaderboard());
+        this.openCustomizerButton.addEventListener('click', () => this.openCustomizer());
+        this.closeCustomizerButton.addEventListener('click', () => this.closeCustomizer());
+        this.playFromCustomizerButton.addEventListener('click', () => this.startGameFromMenu());
+        this.updateDifficultyState();
+        
+        // Cargar nombre guardado
+        this.loadSavedPlayerName();
         this.playerNameInput.focus();
     }
 
-    handleSubmit(e) {
-        e.preventDefault();
+    /**
+     * Carga el nombre guardado del jugador desde localStorage
+     */
+    loadSavedPlayerName() {
+        const savedName = localStorage.getItem('playerName');
+        if (savedName) {
+            this.playerNameInput.value = savedName;
+        }
+    }
 
+    /**
+     * Guarda el nombre del jugador en localStorage
+     * @param {string} name - Nombre del jugador
+     */
+    savePlayerName(name) {
+        localStorage.setItem('playerName', name);
+    }
+
+    updateDifficultyState() {
+        const isAiMode = this.gameModeSelect.value === 'ai';
+        this.startDifficulty.disabled = !isAiMode;
+    }
+
+    handleSubmit(event) {
+        event.preventDefault();
+        this.startGameFromMenu();
+    }
+
+    startGameFromMenu() {
         const playerName = this.playerNameInput.value.trim() || 'Jugador';
-        const difficulty = document.querySelector('input[name="difficulty"]:checked').value;
+        const gameMode = this.gameModeSelect.value;
+        const difficulty = this.startDifficulty.value;
 
-        // Ocultar pantalla de inicio y mostrar juego
+        // Guardar nombre para próximas partidas
+        this.savePlayerName(playerName);
+
         this.startScreen.style.display = 'none';
+        this.customizerScreen.style.display = 'none';
+        this.leaderboardScreen.style.display = 'none';
         this.gameScreen.style.display = 'flex';
 
-        // Iniciar juego con los parámetros
-        new TicTacToeApp(playerName, difficulty);
+        if (!this.appInstance) {
+            this.appInstance = new TicTacToeApp({
+                playerName,
+                gameMode,
+                difficulty,
+                onReturnToMenu: () => this.showStartScreen()
+            });
+        } else {
+            this.appInstance.startNewSession({ playerName, gameMode, difficulty });
+        }
+    }
+
+    showStartScreen() {
+        this.gameScreen.style.display = 'none';
+        this.customizerScreen.style.display = 'none';
+        this.leaderboardScreen.style.display = 'none';
+        this.startScreen.style.display = 'flex';
+        this.playerNameInput.focus();
+    }
+
+    openLeaderboard() {
+        this.startScreen.style.display = 'none';
+        this.customizerScreen.style.display = 'none';
+        this.leaderboardScreen.style.display = 'flex';
+        this.renderLeaderboard();
+    }
+
+    closeLeaderboard() {
+        this.leaderboardScreen.style.display = 'none';
+        this.startScreen.style.display = 'flex';
+        this.playerNameInput.focus();
+    }
+
+    openCustomizer() {
+        if (!this.appInstance) {
+            this.appInstance = new TicTacToeApp({
+                playerName: this.playerNameInput.value.trim() || 'Jugador',
+                gameMode: this.gameModeSelect.value,
+                difficulty: this.startDifficulty.value,
+                onReturnToMenu: () => this.showStartScreen()
+            });
+        }
+
+        this.startScreen.style.display = 'none';
+        this.leaderboardScreen.style.display = 'none';
+        this.customizerScreen.style.display = 'flex';
+    }
+
+    closeCustomizer() {
+        this.customizerScreen.style.display = 'none';
+        this.startScreen.style.display = 'flex';
+        this.playerNameInput.focus();
+    }
+
+    renderLeaderboard() {
+        const entries = TicTacToeApp.getLeaderboardEntries();
+        if (!entries.length) {
+            this.leaderboardList.innerHTML = '<p class="empty-message">Aun no hay puntuaciones</p>';
+            return;
+        }
+
+        const rows = entries.map((entry, index) => {
+            return `
+                <div class="leaderboard-row">
+                    <div class="leaderboard-rank">#${index + 1}</div>
+                    <div class="leaderboard-name">${entry.name}</div>
+                    <div class="leaderboard-meta">Pts: ${entry.points}</div>
+                    <div class="leaderboard-meta">W:${entry.wins} D:${entry.draws} L:${entry.losses}</div>
+                </div>
+            `;
+        }).join('');
+
+        this.leaderboardList.innerHTML = rows;
     }
 }
 
@@ -35,88 +158,257 @@ class StartScreen {
  * App - Controlador principal de la aplicación
  */
 class TicTacToeApp {
-    constructor(playerName = 'Jugador', difficulty = 'medium') {
+    constructor({ playerName = 'Jugador', gameMode = 'ai', difficulty = 'medium', onReturnToMenu } = {}) {
         this.playerName = playerName;
+        this.gameMode = gameMode;
         this.gameLogic = new GameLogic();
         this.aiPlayer = new AIPlayer(difficulty);
+        this.onReturnToMenu = onReturnToMenu;
+        this.statsKey = this.getStatsKey();
         
         // Stats
         this.playerScore = 0;
         this.machineScore = 0;
         this.drawScore = 0;
-        this.gameHistory = [];
-
-        // Game timing and performance
-        this.gameStartTime = null;
+        this.playerPoints = 0;
+        this.machinePoints = 0;
         this.totalMoves = 0;
-        this.timerInterval = null;
+        this.playerLevel = 1;
+        this.playerXp = 0;
+        this.xpToNext = 100;
 
         // DOM Elements
-        this.appContainer = document.getElementById('app');
         this.boardElement = document.getElementById('gameBoard');
-        this.cellElements = []; // Se llenará en addEventListeners()
+        this.cellElements = document.querySelectorAll('.cell');
         this.statusElement = document.getElementById('status');
         this.resetButton = document.getElementById('resetBtn');
         this.resetStatsButton = document.getElementById('resetStatsBtn');
         this.difficultySelect = document.getElementById('difficultySelect');
+        this.themeToggleButton = document.getElementById('themeToggle');
+        this.boardStyleSelect = document.getElementById('boardStyleSelect');
+        this.boardBgColorInput = document.getElementById('boardBgColor');
+        this.cellBgColorInput = document.getElementById('cellBgColor');
+        this.boardStyleResetButton = document.getElementById('boardStyleResetBtn');
         this.playerScoreElement = document.getElementById('playerScore');
         this.machineScoreElement = document.getElementById('machineScore');
         this.drawScoreElement = document.getElementById('drawScore');
-        this.timerElement = document.getElementById('gameTimer') || null;
-        this.movesElement = document.getElementById('moveCount') || null;
+        this.playerLabelElement = document.getElementById('playerLabel');
+        this.machineLabelElement = document.getElementById('machineLabel');
+        this.playerPointsElement = document.getElementById('playerPoints');
+        this.machinePointsElement = document.getElementById('machinePoints');
+        this.playerLevelElement = document.getElementById('playerLevel');
+        this.playerXpElement = document.getElementById('playerXp');
+        this.hudPlayerName = document.getElementById('hudPlayerName');
+        this.hudPlayerLevel = document.getElementById('hudPlayerLevel');
+        this.hudPlayerXpFill = document.getElementById('hudPlayerXpFill');
+        this.hudPlayerXpText = document.getElementById('hudPlayerXpText');
+        this.winMessageElement = document.getElementById('winMessage');
+        this.closeWinMessageButton = document.getElementById('closeWinMessage');
+        this.backToMenuButton = document.getElementById('backToMenuBtn');
 
         this.aiThinking = false;
 
-        // Actualizar interfaz con el nombre y dificultad del jugador
-        this.updatePlayerInfo();
         this.initialize();
-    }
-
-    /**
-     * Actualiza la información del jugador en la interfaz
-     */
-    updatePlayerInfo() {
-        // Buscar el headerTitle y actualizarlo
-        const subtitle = document.querySelector('.subtitle');
-        if (subtitle) {
-            const difficulty = this.aiPlayer.difficulty;
-            const difficultyText = {
-                'very-easy': 'Muy Fácil',
-                'easy': 'Fácil',
-                'medium': 'Medio',
-                'hard': 'Difícil',
-                'very-hard': 'Muy Difícil'
-            };
-            subtitle.textContent = `${this.playerName} vs IA [${difficultyText[difficulty]}]`;
-        }
     }
 
     /**
      * Inicializa la aplicación
      */
     initialize() {
+        this.loadTheme();
+        this.loadBoardStyle();
         this.addEventListeners();
         this.updateUI();
         this.loadStats();
-        this.updateHistoryDisplay();
+        this.loadLevelData();
+        this.applyGameMode();
+        this.updateThemeButton();
     }
 
     /**
      * Agrega event listeners
      */
     addEventListeners() {
-        // Seleccionar celdas dinámicamente dentro del contenedor visible
-        this.cellElements = this.appContainer.querySelectorAll('.cell');
-        
         this.cellElements.forEach((cell, index) => {
             cell.addEventListener('click', () => this.handleCellClick(index));
         });
 
         this.resetButton.addEventListener('click', () => this.resetGame());
         this.resetStatsButton.addEventListener('click', () => this.resetStats());
+        this.themeToggleButton.addEventListener('click', () => this.toggleTheme());
+        this.closeWinMessageButton.addEventListener('click', () => this.hideWinMessage());
+        this.backToMenuButton.addEventListener('click', () => this.returnToMenu());
+        this.boardStyleSelect.addEventListener('change', (e) => {
+            this.applyBoardStyle(e.target.value);
+        });
+        this.boardBgColorInput.addEventListener('input', () => this.handleCustomBoardColors());
+        this.cellBgColorInput.addEventListener('input', () => this.handleCustomBoardColors());
+        this.boardStyleResetButton.addEventListener('click', () => this.resetBoardStyle());
         this.difficultySelect.addEventListener('change', (e) => {
             this.aiPlayer.setDifficulty(e.target.value);
         });
+    }
+
+    /**
+     * Aplica modo de juego y actualiza etiquetas
+     */
+    applyGameMode() {
+        const isAiMode = this.gameMode === 'ai';
+        if (this.playerLabelElement) {
+            this.playerLabelElement.textContent = `${this.playerName} (X)`;
+        }
+        if (this.machineLabelElement) {
+            this.machineLabelElement.textContent = isAiMode ? 'Máquina (O)' : 'Jugador 2 (O)';
+        }
+        if (this.difficultySelect) {
+            this.difficultySelect.disabled = !isAiMode;
+        }
+
+        if (this.hudPlayerName) {
+            this.hudPlayerName.textContent = this.playerName;
+        }
+    }
+
+    startNewSession({ playerName, gameMode, difficulty }) {
+        this.playerName = playerName;
+        this.gameMode = gameMode;
+        this.aiPlayer.setDifficulty(difficulty);
+        this.statsKey = this.getStatsKey();
+        this.resetSessionStats();
+        this.applyGameMode();
+        this.resetGame();
+        this.loadStats();
+        this.loadLevelData();
+    }
+
+    returnToMenu() {
+        this.resetGame();
+        if (typeof this.onReturnToMenu === 'function') {
+            this.onReturnToMenu();
+        }
+    }
+
+    /**
+     * Aplica un estilo de tablero y lo guarda
+     * @param {'glass'|'classic'|'neon'|'wood'|'custom'} style
+     */
+    applyBoardStyle(style) {
+        const styleClasses = ['board-style-metal', 'board-style-classic', 'board-style-neon', 'board-style-wood', 'board-style-custom'];
+        const validStyles = ['glass', 'metal', 'classic', 'neon', 'wood', 'custom'];
+        const nextStyle = validStyles.includes(style) ? style : 'glass';
+
+        this.boardElement.classList.remove(...styleClasses);
+
+        if (nextStyle !== 'glass') {
+            this.boardElement.classList.add(`board-style-${nextStyle}`);
+        }
+
+        this.boardStyleSelect.value = nextStyle;
+        this.toggleCustomColorInputs(nextStyle === 'custom');
+        localStorage.setItem('tictactoe_board_style', nextStyle);
+    }
+
+    /**
+     * Habilita o deshabilita inputs de color personalizado
+     * @param {boolean} enabled
+     */
+    toggleCustomColorInputs(enabled) {
+        this.boardBgColorInput.disabled = !enabled;
+        this.cellBgColorInput.disabled = !enabled;
+    }
+
+    /**
+     * Actualiza colores personalizados del tablero
+     */
+    handleCustomBoardColors() {
+        const boardColor = this.boardBgColorInput.value;
+        const cellColor = this.cellBgColorInput.value;
+
+        this.boardElement.style.setProperty('--board-custom-bg', boardColor);
+        this.boardElement.style.setProperty('--cell-custom-bg', cellColor);
+
+        localStorage.setItem('tictactoe_board_custom_colors', JSON.stringify({
+            boardColor,
+            cellColor
+        }));
+
+        if (this.boardStyleSelect.value !== 'custom') {
+            this.applyBoardStyle('custom');
+        }
+    }
+
+    /**
+     * Reinicia el estilo del tablero a valores por defecto
+     */
+    resetBoardStyle() {
+        this.boardBgColorInput.value = '#e2eeff';
+        this.cellBgColorInput.value = '#ffffff';
+        this.boardElement.style.setProperty('--board-custom-bg', '#e2eeff');
+        this.boardElement.style.setProperty('--cell-custom-bg', '#ffffff');
+        localStorage.removeItem('tictactoe_board_custom_colors');
+        this.applyBoardStyle('glass');
+    }
+
+    /**
+     * Carga el estilo del tablero guardado
+     */
+    loadBoardStyle() {
+        const savedStyle = localStorage.getItem('tictactoe_board_style') || 'glass';
+        const savedColors = localStorage.getItem('tictactoe_board_custom_colors');
+
+        if (savedColors) {
+            try {
+                const { boardColor, cellColor } = JSON.parse(savedColors);
+                if (boardColor) {
+                    this.boardBgColorInput.value = boardColor;
+                    this.boardElement.style.setProperty('--board-custom-bg', boardColor);
+                }
+                if (cellColor) {
+                    this.cellBgColorInput.value = cellColor;
+                    this.boardElement.style.setProperty('--cell-custom-bg', cellColor);
+                }
+            } catch (error) {
+                localStorage.removeItem('tictactoe_board_custom_colors');
+            }
+        }
+
+        this.applyBoardStyle(savedStyle);
+    }
+
+    /**
+     * Aplica un tema visual y lo persiste
+     * @param {'light'|'dark'} theme
+     */
+    setTheme(theme) {
+        document.body.classList.toggle('dark', theme === 'dark');
+        localStorage.setItem('tictactoe_theme', theme);
+        this.updateThemeButton();
+    }
+
+    /**
+     * Alterna entre modo claro y oscuro
+     */
+    toggleTheme() {
+        const isDark = document.body.classList.contains('dark');
+        this.setTheme(isDark ? 'light' : 'dark');
+    }
+
+    /**
+     * Carga el tema desde localStorage
+     */
+    loadTheme() {
+        const savedTheme = localStorage.getItem('tictactoe_theme');
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+        this.setTheme(theme);
+    }
+
+    /**
+     * Actualiza el texto del botón de tema
+     */
+    updateThemeButton() {
+        const isDark = document.body.classList.contains('dark');
+        this.themeToggleButton.textContent = isDark ? '☀️ Modo claro' : '🌙 Modo oscuro';
     }
 
     /**
@@ -124,19 +416,13 @@ class TicTacToeApp {
      * @param {number} index
      */
     handleCellClick(index) {
-        // Inicia el cronómetro en el primer movimiento
-        if (!this.gameStartTime) {
-            this.startGameTimer();
-        }
-
         if (this.aiThinking || !this.gameLogic.isGameActive() || !this.gameLogic.isValidMove(index)) {
             return;
         }
 
         // Movimiento del jugador
         this.gameLogic.makeMove(index);
-        this.totalMoves++;
-        this.updateMoveDisplay();
+        this.totalMoves += 1;
         this.updateUI();
 
         // Verificar estado del juego
@@ -146,9 +432,11 @@ class TicTacToeApp {
             return;
         }
 
-        // Turno de la IA
-        this.aiThinking = true;
-        setTimeout(() => this.makeAIMove(), this.aiPlayer.getMoveDelay());
+        // Turno de la IA si aplica
+        if (this.gameMode === 'ai' && this.gameLogic.isGameActive()) {
+            this.aiThinking = true;
+            setTimeout(() => this.makeAIMove(), this.aiPlayer.getMoveDelay());
+        }
     }
 
     /**
@@ -162,8 +450,7 @@ class TicTacToeApp {
 
         const bestMove = this.aiPlayer.getBestMove(this.gameLogic);
         this.gameLogic.makeMove(bestMove);
-        this.totalMoves++;
-        this.updateMoveDisplay();
+        this.totalMoves += 1;
         this.updateUI();
 
         const gameState = this.gameLogic.checkGameState();
@@ -179,94 +466,39 @@ class TicTacToeApp {
      * @param {string} state - 'X', 'O' o 'draw'
      */
     endGame(state) {
-        this.stopGameTimer();
-        
-        let result = '';
         let pointsEarned = 0;
 
         if (state === 'X') {
-            this.statusElement.textContent = `🎉 ¡${this.playerName} ganó!`;
-            result = 'WIN';
+            this.statusElement.textContent = '🎉 ¡Ganaste!';
             this.playerScore++;
-            pointsEarned = this.calculatePoints(state);
+            pointsEarned = this.calculatePointsForWin();
+            this.playerPoints += pointsEarned;
+            this.updateScoreDisplay();
+            this.showWinMessage();
         } else if (state === 'O') {
-            this.statusElement.textContent = '🤖 La máquina ganó';
-            result = 'LOSS';
+            this.statusElement.textContent = this.gameMode === 'ai' ? '🤖 La máquina ganó' : '🎯 Jugador 2 ganó';
             this.machineScore++;
-            pointsEarned = 0;
+            this.machinePoints += 3;
+            this.updateScoreDisplay();
         } else if (state === 'draw') {
             this.statusElement.textContent = '🤝 Empate';
-            result = 'DRAW';
             this.drawScore++;
-            pointsEarned = this.calculatePoints(state);
+            pointsEarned = 1;
+            this.playerPoints += pointsEarned;
+            this.machinePoints += 1;
+            this.updateScoreDisplay();
         }
 
-        this.updateScoreDisplay();
-        this.saveMatchResult(result, pointsEarned);
-    }
+        this.updateLeaderboard(state, pointsEarned);
+        this.addExperience(state, pointsEarned);
 
-    /**
-     * Calcula los puntos basado en tiempo y cantidad de movimientos
-     * @param {string} result - 'X' para victoria, 'draw' para empate
-     * @returns {number} - Puntos obtenidos
-     */
-    calculatePoints(result) {
-        const timeInSeconds = Math.floor((Date.now() - this.gameStartTime) / 1000);
-        let basePoints = result === 'X' ? 100 : 50; // 100 para ganar, 50 para empate
-        
-        // Bonus por rapidez (máximo 50 puntos)
-        const speedBonus = Math.max(0, 50 - Math.floor(timeInSeconds / 2));
-        
-        // Bonus por eficiencia (menos movimientos mejor)
-        const efficiencyBonus = Math.max(0, 30 - (this.totalMoves * 2));
-        
-        const totalPoints = basePoints + speedBonus + efficiencyBonus;
-        return Math.max(10, totalPoints); // Mínimo 10 puntos
-    }
-
-    /**
-     * Inicia el cronómetro del juego
-     */
-    startGameTimer() {
-        this.gameStartTime = Date.now();
-        if (this.timerElement) {
-            this.timerInterval = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - this.gameStartTime) / 1000);
-                const minutes = Math.floor(elapsed / 60);
-                const seconds = elapsed % 60;
-                this.timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-            }, 100);
-        }
-    }
-
-    /**
-     * Detiene el cronómetro
-     */
-    stopGameTimer() {
-        if (this.timerInterval) {
-            clearInterval(this.timerInterval);
-            this.timerInterval = null;
-        }
-    }
-
-    /**
-     * Actualiza el display de movimientos
-     */
-    updateMoveDisplay() {
-        if (this.movesElement) {
-            this.movesElement.textContent = this.totalMoves;
-        }
+        this.saveStats();
     }
 
     /**
      * Actualiza la interfaz
      */
     updateUI() {
-        // Asegurar que tenemos las celdas correctas
-        if (this.cellElements.length === 0) {
-            this.cellElements = this.appContainer.querySelectorAll('.cell');
-        }
-
         // Actualizar celdas
         this.cellElements.forEach((cell, index) => {
             const value = this.gameLogic.getBoard()[index];
@@ -309,22 +541,62 @@ class TicTacToeApp {
         this.playerScoreElement.textContent = this.playerScore;
         this.machineScoreElement.textContent = this.machineScore;
         this.drawScoreElement.textContent = this.drawScore;
+        if (this.playerPointsElement) {
+            this.playerPointsElement.textContent = this.playerPoints;
+        }
+        if (this.machinePointsElement) {
+            this.machinePointsElement.textContent = this.machinePoints;
+        }
+        if (this.playerLevelElement) {
+            this.playerLevelElement.textContent = this.playerLevel;
+        }
+        if (this.playerXpElement) {
+            this.playerXpElement.textContent = `${this.playerXp} / ${this.xpToNext}`;
+        }
+
+        if (this.hudPlayerLevel) {
+            this.hudPlayerLevel.textContent = this.playerLevel;
+        }
+        if (this.hudPlayerXpText) {
+            this.hudPlayerXpText.textContent = `${this.playerXp} / ${this.xpToNext} XP`;
+        }
+        if (this.hudPlayerXpFill) {
+            const percent = this.xpToNext > 0 ? Math.min(100, Math.round((this.playerXp / this.xpToNext) * 100)) : 0;
+            this.hudPlayerXpFill.style.width = `${percent}%`;
+        }
     }
 
     /**
      * Reinicia el juego
      */
     resetGame() {
-        this.stopGameTimer();
         this.gameLogic.resetGame();
-        this.gameStartTime = null;
         this.totalMoves = 0;
-        this.updateMoveDisplay();
         this.updateUI();
         this.statusElement.textContent = 'Tu turno';
-        if (this.timerElement) {
-            this.timerElement.textContent = '0:00';
+        this.hideWinMessage();
+    }
+
+    /**
+     * Muestra el mensaje de victoria del jugador
+     */
+    showWinMessage() {
+        if (!this.winMessageElement) {
+            return;
         }
+
+        this.winMessageElement.classList.add('visible');
+    }
+
+    /**
+     * Oculta el mensaje de victoria
+     */
+    hideWinMessage() {
+        if (!this.winMessageElement) {
+            return;
+        }
+
+        this.winMessageElement.classList.remove('visible');
     }
 
     /**
@@ -335,19 +607,65 @@ class TicTacToeApp {
             this.playerScore = 0;
             this.machineScore = 0;
             this.drawScore = 0;
+            this.playerPoints = 0;
+            this.machinePoints = 0;
             this.updateScoreDisplay();
             this.saveStats();
         }
+    }
+
+    resetSessionStats() {
+        this.playerScore = 0;
+        this.machineScore = 0;
+        this.drawScore = 0;
+        this.playerPoints = 0;
+        this.machinePoints = 0;
+        this.totalMoves = 0;
+        this.updateScoreDisplay();
+    }
+
+    /**
+     * Calcula puntos por victoria segun movimientos y dificultad
+     * @returns {number}
+     */
+    calculatePointsForWin() {
+        if (this.gameMode !== 'ai') {
+            return 3;
+        }
+
+        const difficultyBonus = {
+            easy: 1,
+            medium: 1.5,
+            hard: 2
+        };
+        const difficulty = this.aiPlayer.difficulty || 'medium';
+        const multiplier = difficultyBonus[difficulty] || 1.5;
+
+        const efficiencyBonus = Math.max(0, 10 - this.totalMoves);
+        const basePoints = 3;
+        const total = Math.round((basePoints + efficiencyBonus) * multiplier);
+
+        return Math.max(3, total);
+    }
+
+    getStatsKey() {
+        return `tictactoe_stats_${this.playerName.toLowerCase()}`;
+    }
+
+    getLevelKey() {
+        return `tictactoe_level_${this.playerName.toLowerCase()}`;
     }
 
     /**
      * Guarda las estadísticas en localStorage
      */
     saveStats() {
-        localStorage.setItem('tictactoe_stats', JSON.stringify({
+        localStorage.setItem(this.statsKey, JSON.stringify({
             playerScore: this.playerScore,
             machineScore: this.machineScore,
-            drawScore: this.drawScore
+            drawScore: this.drawScore,
+            playerPoints: this.playerPoints,
+            machinePoints: this.machinePoints
         }));
     }
 
@@ -355,14 +673,104 @@ class TicTacToeApp {
      * Carga las estadísticas de localStorage
      */
     loadStats() {
-        const saved = localStorage.getItem('tictactoe_stats');
+        const saved = localStorage.getItem(this.statsKey);
         if (saved) {
             const stats = JSON.parse(saved);
             this.playerScore = stats.playerScore || 0;
             this.machineScore = stats.machineScore || 0;
             this.drawScore = stats.drawScore || 0;
+            this.playerPoints = stats.playerPoints || 0;
+            this.machinePoints = stats.machinePoints || 0;
             this.updateScoreDisplay();
         }
+    }
+
+    loadLevelData() {
+        const saved = localStorage.getItem(this.getLevelKey());
+        if (saved) {
+            const levelData = JSON.parse(saved);
+            this.playerLevel = levelData.level || 1;
+            this.playerXp = levelData.xp || 0;
+            this.xpToNext = levelData.xpToNext || this.getXpTarget(this.playerLevel);
+        } else {
+            this.playerLevel = 1;
+            this.playerXp = 0;
+            this.xpToNext = this.getXpTarget(this.playerLevel);
+        }
+        this.updateScoreDisplay();
+    }
+
+    saveLevelData() {
+        localStorage.setItem(this.getLevelKey(), JSON.stringify({
+            level: this.playerLevel,
+            xp: this.playerXp,
+            xpToNext: this.xpToNext
+        }));
+    }
+
+    getXpTarget(level) {
+        return 100 + (level - 1) * 50;
+    }
+
+    addExperience(state, pointsEarned) {
+        const baseXp = state === 'X' ? 20 : state === 'draw' ? 10 : 5;
+        const difficultyMultiplier = this.gameMode === 'ai' ? this.getDifficultyMultiplier() : 1;
+        const moveBonus = Math.max(0, 12 - this.totalMoves);
+        const xpGained = Math.round((baseXp + pointsEarned + moveBonus) * difficultyMultiplier);
+
+        this.playerXp += xpGained;
+        while (this.playerXp >= this.xpToNext) {
+            this.playerXp -= this.xpToNext;
+            this.playerLevel += 1;
+            this.xpToNext = this.getXpTarget(this.playerLevel);
+        }
+
+        this.saveLevelData();
+        this.updateScoreDisplay();
+    }
+
+    getDifficultyMultiplier() {
+        const map = {
+            easy: 1,
+            medium: 1.2,
+            hard: 1.5
+        };
+        return map[this.aiPlayer.difficulty] || 1.2;
+    }
+
+    updateLeaderboard(state, pointsEarned) {
+        if (this.gameMode !== 'ai') {
+            return;
+        }
+
+        const key = 'tictactoe_leaderboard';
+        const saved = localStorage.getItem(key);
+        const entries = saved ? JSON.parse(saved) : [];
+        const normalizedName = this.playerName.trim() || 'Jugador';
+        const existing = entries.find(entry => entry.name.toLowerCase() === normalizedName.toLowerCase());
+
+        if (existing) {
+            existing.points += pointsEarned;
+            existing.wins += state === 'X' ? 1 : 0;
+            existing.draws += state === 'draw' ? 1 : 0;
+            existing.losses += state === 'O' ? 1 : 0;
+        } else {
+            entries.push({
+                name: normalizedName,
+                points: pointsEarned,
+                wins: state === 'X' ? 1 : 0,
+                draws: state === 'draw' ? 1 : 0,
+                losses: state === 'O' ? 1 : 0
+            });
+        }
+
+        entries.sort((a, b) => b.points - a.points);
+        localStorage.setItem(key, JSON.stringify(entries));
+    }
+
+    static getLeaderboardEntries() {
+        const saved = localStorage.getItem('tictactoe_leaderboard');
+        return saved ? JSON.parse(saved) : [];
     }
 }
 
