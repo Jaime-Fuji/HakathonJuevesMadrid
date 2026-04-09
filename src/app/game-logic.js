@@ -65,7 +65,7 @@ class GameLogic {
      * @returns {boolean}
      */
     isValidMove(index) {
-        return index >= 0 && index < 9 && this.board[index] === null;
+        return index >= 0 && index < 9;
     }
 
     /**
@@ -73,9 +73,7 @@ class GameLogic {
      * @returns {number[]}
      */
     getAvailableMoves() {
-        return this.board
-            .map((cell, index) => cell === null ? index : null)
-            .filter(val => val !== null);
+        return [0, 1, 2, 3, 4, 5, 6, 7, 8];
     }
 
     /**
@@ -92,8 +90,9 @@ class GameLogic {
             }
         }
 
-        // Verificar empate
-        if (this.board.every(cell => cell !== null)) {
+        // Verificar empate - en este juego variante, empate si no hay movimientos disponibles
+        const availableMoves = this.getAvailableMoves();
+        if (availableMoves.length === 0) {
             return 'draw';
         }
 
@@ -159,13 +158,25 @@ class GameLogic {
      * @param {boolean} isMaximizing - Si es turno de maximización
      * @returns {number} - Puntuación
      */
-    minimax(depth = 0, isMaximizing = true) {
+    minimax(depth = 0, isMaximizing = true, maxDepth = 6) {
         const gameState = this.checkGameState();
 
         // Terminal states
         if (gameState === 'O') return 10 - depth; // IA gana
         if (gameState === 'X') return depth - 10; // Jugador gana
         if (gameState === 'draw') return 0; // Empate
+        
+        // Límite de profundidad para evitar stack overflow
+        if (depth >= maxDepth) {
+            return 0; // Evaluación neutral en profundidad máxima
+        }
+
+        const availableMoves = this.getAvailableMoves();
+        
+        // Si no hay movimientos disponibles, es empate
+        if (availableMoves.length === 0) {
+            return 0;
+        }
 
         if (isMaximizing) {
             // IA trata de maximizar puntuación
