@@ -1,0 +1,309 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-color: #6366f1;
+    --secondary-color: #ec4899;
+    --success-color: #10b981;
+    --danger-color: #ef4444;
+    --warning-color: #f59e0b;
+    --bg-color: #0f172a;
+    --card-bg: #1e293b;
+    --text-color: #f1f5f9;
+    --text-muted: #94a3b8;
+    --border-color: #334155;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, var(--bg-color) 0%, #1a1f35 100%);
+    color: var(--text-color);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.container {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    max-width: 500px;
+    width: 100%;
+    border: 1px solid var(--border-color);
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.subtitle {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+
+.game-info {
+    margin-bottom: 25px;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+.stat {
+    background: rgba(99, 102, 241, 0.1);
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    transition: all 0.3s ease;
+}
+
+.stat:hover {
+    background: rgba(99, 102, 241, 0.2);
+    transform: translateY(-2px);
+}
+
+.stat .label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+}
+
+.stat .value {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.status-bar {
+    background: rgba(99, 102, 241, 0.1);
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+    border-left: 4px solid var(--primary-color);
+}
+
+.status {
+    color: var(--text-color);
+    font-weight: 600;
+    font-size: 1.1rem;
+    text-align: center;
+}
+
+.game-board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 15px;
+    border: 2px solid var(--border-color);
+}
+
+.cell {
+    width: 100%;
+    aspect-ratio: 1;
+    background: rgba(30, 41, 59, 0.8);
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    user-select: none;
+}
+
+.cell:hover:not(.disabled):not(.filled) {
+    background: rgba(99, 102, 241, 0.2);
+    border-color: var(--primary-color);
+    transform: scale(1.05);
+}
+
+.cell.filled {
+    cursor: not-allowed;
+}
+
+.cell.player-x {
+    color: var(--primary-color);
+    font-weight: 900;
+}
+
+.cell.player-o {
+    color: var(--secondary-color);
+    font-weight: 900;
+}
+
+.cell.winner {
+    border-color: var(--success-color);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+}
+
+.button-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 25px;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), #4f46e5);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+}
+
+.btn-secondary:hover {
+    background: rgba(99, 102, 241, 0.1);
+    transform: translateY(-2px);
+}
+
+.btn-secondary:active {
+    transform: translateY(0);
+}
+
+.difficulty {
+    text-align: center;
+    padding: 15px;
+    background: rgba(99, 102, 241, 0.05);
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+}
+
+.difficulty label {
+    display: block;
+    margin-bottom: 10px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+#difficultySelect {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 2px solid var(--primary-color);
+    background: var(--bg-color);
+    color: var(--text-color);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#difficultySelect:hover {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+}
+
+#difficultySelect:focus {
+    outline: none;
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+}
+
+/* Animaciones */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+.container {
+    animation: slideIn 0.5s ease-out;
+}
+
+.cell {
+    animation: slideIn 0.3s ease-out forwards;
+}
+
+.cell:nth-child(1) { animation-delay: 0.05s; }
+.cell:nth-child(2) { animation-delay: 0.1s; }
+.cell:nth-child(3) { animation-delay: 0.15s; }
+.cell:nth-child(4) { animation-delay: 0.1s; }
+.cell:nth-child(5) { animation-delay: 0.15s; }
+.cell:nth-child(6) { animation-delay: 0.2s; }
+.cell:nth-child(7) { animation-delay: 0.15s; }
+.cell:nth-child(8) { animation-delay: 0.2s; }
+.cell:nth-child(9) { animation-delay: 0.25s; }
+
+/* Responsive */
+@media (max-width: 480px) {
+    .container {
+        padding: 25px;
+    }
+
+    .header h1 {
+        font-size: 2rem;
+    }
+
+    .cell {
+        font-size: 2rem;
+    }
+
+    .button-group {
+        grid-template-columns: 1fr;
+    }
+
+    .stats {
+        grid-template-columns: 1fr;
+    }
+}

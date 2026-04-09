@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tres en Raya - Tic Tac Toe</title>
+    <link rel="stylesheet" href="src/assets/styles.css">
+</head>
+<body>
+    <div id="app" class="container">
+        <header class="header">
+            <h1>🎮 Tres en Raya</h1>
+            <p class="subtitle">Juega contra la máquina</p>
+        </header>
+
+        <div class="game-info">
+            <div class="stats">
+                <div class="stat">
+                    <span class="label">Tú (X)</span>
+                    <span class="value" id="playerScore">0</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Máquina (O)</span>
+                    <span class="value" id="machineScore">0</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Empates</span>
+                    <span class="value" id="drawScore">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <p id="status" class="status">Tu turno</p>
+        </div>
+
+        <div class="game-board" id="gameBoard">
+            <div class="cell" data-index="0"></div>
+            <div class="cell" data-index="1"></div>
+            <div class="cell" data-index="2"></div>
+            <div class="cell" data-index="3"></div>
+            <div class="cell" data-index="4"></div>
+            <div class="cell" data-index="5"></div>
+            <div class="cell" data-index="6"></div>
+            <div class="cell" data-index="7"></div>
+            <div class="cell" data-index="8"></div>
+        </div>
+
+        <div class="button-group">
+            <button id="resetBtn" class="btn btn-primary">Nuevo Juego</button>
+            <button id="resetStatsBtn" class="btn btn-secondary">Reiniciar Puntuación</button>
+        </div>
+
+        <div class="difficulty">
+            <label for="difficultySelect">Dificultad:</label>
+            <select id="difficultySelect">
+                <option value="easy">Fácil</option>
+                <option value="medium" selected>Medio</option>
+                <option value="hard">Difícil</option>
+            </select>
+        </div>
+    </div>
+
+    <script src="src/app/game-logic.js"></script>
+    <script src="src/app/ai-player.js"></script>
+    <script src="src/app/app.js"></script>
+</body>
+</html>
