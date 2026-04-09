@@ -44,11 +44,17 @@ class TicTacToeApp {
         this.playerScore = 0;
         this.machineScore = 0;
         this.drawScore = 0;
+        this.gameHistory = [];
+
+        // Game timing and performance
+        this.gameStartTime = null;
+        this.totalMoves = 0;
+        this.timerInterval = null;
 
         // DOM Elements
         this.appContainer = document.getElementById('app');
         this.boardElement = document.getElementById('gameBoard');
-        this.cellElements = document.querySelectorAll('.cell');
+        this.cellElements = []; // Se llenará en addEventListeners()
         this.statusElement = document.getElementById('status');
         this.resetButton = document.getElementById('resetBtn');
         this.resetStatsButton = document.getElementById('resetStatsBtn');
@@ -56,6 +62,8 @@ class TicTacToeApp {
         this.playerScoreElement = document.getElementById('playerScore');
         this.machineScoreElement = document.getElementById('machineScore');
         this.drawScoreElement = document.getElementById('drawScore');
+        this.timerElement = document.getElementById('gameTimer') || null;
+        this.movesElement = document.getElementById('moveCount') || null;
 
         this.aiThinking = false;
 
@@ -73,9 +81,11 @@ class TicTacToeApp {
         if (subtitle) {
             const difficulty = this.aiPlayer.difficulty;
             const difficultyText = {
+                'very-easy': 'Muy Fácil',
                 'easy': 'Fácil',
                 'medium': 'Medio',
-                'hard': 'Difícil'
+                'hard': 'Difícil',
+                'very-hard': 'Muy Difícil'
             };
             subtitle.textContent = `${this.playerName} vs IA [${difficultyText[difficulty]}]`;
         }
@@ -88,12 +98,16 @@ class TicTacToeApp {
         this.addEventListeners();
         this.updateUI();
         this.loadStats();
+        this.updateHistoryDisplay();
     }
 
     /**
      * Agrega event listeners
      */
     addEventListeners() {
+        // Seleccionar celdas dinámicamente dentro del contenedor visible
+        this.cellElements = this.appContainer.querySelectorAll('.cell');
+        
         this.cellElements.forEach((cell, index) => {
             cell.addEventListener('click', () => this.handleCellClick(index));
         });
@@ -110,12 +124,19 @@ class TicTacToeApp {
      * @param {number} index
      */
     handleCellClick(index) {
+        // Inicia el cronómetro en el primer movimiento
+        if (!this.gameStartTime) {
+            this.startGameTimer();
+        }
+
         if (this.aiThinking || !this.gameLogic.isGameActive() || !this.gameLogic.isValidMove(index)) {
             return;
         }
 
         // Movimiento del jugador
         this.gameLogic.makeMove(index);
+        this.totalMoves++;
+        this.updateMoveDisplay();
         this.updateUI();
 
         // Verificar estado del juego
@@ -141,6 +162,8 @@ class TicTacToeApp {
 
         const bestMove = this.aiPlayer.getBestMove(this.gameLogic);
         this.gameLogic.makeMove(bestMove);
+        this.totalMoves++;
+        this.updateMoveDisplay();
         this.updateUI();
 
         const gameState = this.gameLogic.checkGameState();
@@ -156,21 +179,83 @@ class TicTacToeApp {
      * @param {string} state - 'X', 'O' o 'draw'
      */
     endGame(state) {
+        this.stopGameTimer();
+        
+        let result = '';
+        let pointsEarned = 0;
+
         if (state === 'X') {
             this.statusElement.textContent = `🎉 ¡${this.playerName} ganó!`;
+            result = 'WIN';
             this.playerScore++;
-            this.updateScoreDisplay();
+            pointsEarned = this.calculatePoints(state);
         } else if (state === 'O') {
             this.statusElement.textContent = '🤖 La máquina ganó';
+            result = 'LOSS';
             this.machineScore++;
-            this.updateScoreDisplay();
+            pointsEarned = 0;
         } else if (state === 'draw') {
             this.statusElement.textContent = '🤝 Empate';
+            result = 'DRAW';
             this.drawScore++;
-            this.updateScoreDisplay();
+            pointsEarned = this.calculatePoints(state);
         }
 
-        this.saveStats();
+        this.updateScoreDisplay();
+        this.saveMatchResult(result, pointsEarned);
+    }
+
+    /**
+     * Calcula los puntos basado en tiempo y cantidad de movimientos
+     * @param {string} result - 'X' para victoria, 'draw' para empate
+     * @returns {number} - Puntos obtenidos
+     */
+    calculatePoints(result) {
+        const timeInSeconds = Math.floor((Date.now() - this.gameStartTime) / 1000);
+        let basePoints = result === 'X' ? 100 : 50; // 100 para ganar, 50 para empate
+        
+        // Bonus por rapidez (máximo 50 puntos)
+        const speedBonus = Math.max(0, 50 - Math.floor(timeInSeconds / 2));
+        
+        // Bonus por eficiencia (menos movimientos mejor)
+        const efficiencyBonus = Math.max(0, 30 - (this.totalMoves * 2));
+        
+        const totalPoints = basePoints + speedBonus + efficiencyBonus;
+        return Math.max(10, totalPoints); // Mínimo 10 puntos
+    }
+
+    /**
+     * Inicia el cronómetro del juego
+     */
+    startGameTimer() {
+        this.gameStartTime = Date.now();
+        if (this.timerElement) {
+            this.timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - this.gameStartTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                this.timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }, 100);
+        }
+    }
+
+    /**
+     * Detiene el cronómetro
+     */
+    stopGameTimer() {
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+        }
+    }
+
+    /**
+     * Actualiza el display de movimientos
+     */
+    updateMoveDisplay() {
+        if (this.movesElement) {
+            this.movesElement.textContent = this.totalMoves;
+        }
     }
 
     /**
@@ -225,9 +310,16 @@ class TicTacToeApp {
      * Reinicia el juego
      */
     resetGame() {
+        this.stopGameTimer();
         this.gameLogic.resetGame();
+        this.gameStartTime = null;
+        this.totalMoves = 0;
+        this.updateMoveDisplay();
         this.updateUI();
         this.statusElement.textContent = 'Tu turno';
+        if (this.timerElement) {
+            this.timerElement.textContent = '0:00';
+        }
     }
 
     /**

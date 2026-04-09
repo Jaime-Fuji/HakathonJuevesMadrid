@@ -33,16 +33,25 @@
                     <label>Elige el nivel de dificultad:</label>
                     <div class="difficulty-options">
                         <label class="difficulty-option">
-                            <input type="radio" name="difficulty" value="easy" checked>
+                            <input type="radio" name="difficulty" value="very-easy">
                             <div class="difficulty-card easy-card">
-                                <div class="difficulty-emoji">😊</div>
-                                <div class="difficulty-name">Fácil</div>
-                                <div class="difficulty-desc">Movimientos aleatorios</div>
+                                <div class="difficulty-emoji">😄</div>
+                                <div class="difficulty-name">Muy Fácil</div>
+                                <div class="difficulty-desc">10% inteligente</div>
                             </div>
                         </label>
 
                         <label class="difficulty-option">
-                            <input type="radio" name="difficulty" value="medium">
+                            <input type="radio" name="difficulty" value="easy">
+                            <div class="difficulty-card easy-card">
+                                <div class="difficulty-emoji">😊</div>
+                                <div class="difficulty-name">Fácil</div>
+                                <div class="difficulty-desc">40% inteligente</div>
+                            </div>
+                        </label>
+
+                        <label class="difficulty-option">
+                            <input type="radio" name="difficulty" value="medium" checked>
                             <div class="difficulty-card medium-card">
                                 <div class="difficulty-emoji">🤔</div>
                                 <div class="difficulty-name">Medio</div>
@@ -55,7 +64,16 @@
                             <div class="difficulty-card hard-card">
                                 <div class="difficulty-emoji">🧠</div>
                                 <div class="difficulty-name">Difícil</div>
-                                <div class="difficulty-desc">Casi imposible</div>
+                                <div class="difficulty-desc">95% inteligente</div>
+                            </div>
+                        </label>
+
+                        <label class="difficulty-option">
+                            <input type="radio" name="difficulty" value="very-hard">
+                            <div class="difficulty-card hard-card">
+                                <div class="difficulty-emoji">👾</div>
+                                <div class="difficulty-name">Muy Difícil</div>
+                                <div class="difficulty-desc">Imposible</div>
                             </div>
                         </label>
                     </div>
@@ -92,6 +110,17 @@
                     <span class="value" id="drawScore">0</span>
                 </div>
             </div>
+
+            <div class="game-stats">
+                <div class="stat-item">
+                    <span class="label">⏱️ Tiempo</span>
+                    <span class="value" id="gameTimer">0:00</span>
+                </div>
+                <div class="stat-item">
+                    <span class="label">🎯 Movimientos</span>
+                    <span class="value" id="moveCount">0</span>
+                </div>
+            </div>
         </div>
 
         <div class="status-bar">
@@ -118,10 +147,19 @@
         <div class="difficulty">
             <label for="difficultySelect">Dificultad del juego:</label>
             <select id="difficultySelect">
+                <option value="very-easy">Muy Fácil</option>
                 <option value="easy">Fácil</option>
                 <option value="medium" selected>Medio</option>
                 <option value="hard">Difícil</option>
+                <option value="very-hard">Muy Difícil</option>
             </select>
+        </div>
+
+        <div class="match-history">
+            <h3>📊 Histórico de Partidas</h3>
+            <div id="historyContainer" class="history-list">
+                <p class="empty-message">Sin partidas aún</p>
+            </div>
         </div>
         </div>
         </div>

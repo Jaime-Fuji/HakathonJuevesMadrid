@@ -5,6 +5,15 @@ class AIPlayer {
     constructor(difficulty = 'medium') {
         this.difficulty = difficulty;
         this.moveDelay = 500; // Delay para que no sea instantáneo
+        
+        // Configuración de dificultades
+        this.difficultySettings = {
+            'very-easy': { smartRatio: 0.1, moveDelay: 800 },      // 10% inteligente
+            'easy': { smartRatio: 0.4, moveDelay: 700 },          // 40% inteligente
+            'medium': { smartRatio: 0.7, moveDelay: 500 },        // 70% inteligente
+            'hard': { smartRatio: 0.95, moveDelay: 300 },         // 95% inteligente
+            'very-hard': { smartRatio: 1.0, moveDelay: 200 }      // 100% óptimo
+        };
     }
 
     /**
@@ -14,15 +23,76 @@ class AIPlayer {
      */
     getBestMove(gameLogic) {
         switch (this.difficulty) {
+            case 'very-easy':
+                return this.getVeryEasyMove(gameLogic);
             case 'easy':
-                return this.getRandomMove(gameLogic);
+                return this.getEasyMove(gameLogic);
             case 'medium':
                 return this.getMediumMove(gameLogic);
             case 'hard':
                 return this.getHardMove(gameLogic);
+            case 'very-hard':
+                return this.getVeryHardMove(gameLogic);
             default:
-                return this.getRandomMove(gameLogic);
+                return this.getMediumMove(gameLogic);
         }
+    }
+
+    /**
+     * Dificultad Muy Fácil: Principalmente aleatorio (10% inteligente)
+     * @param {GameLogic} gameLogic
+     * @returns {number}
+     */
+    getVeryEasyMove(gameLogic) {
+        if (Math.random() < 0.1) {
+            return this.getSmartMove(gameLogic);
+        }
+        return this.getRandomMove(gameLogic);
+    }
+
+    /**
+     * Dificultad Fácil: 40% inteligente, 60% aleatorio
+     * @param {GameLogic} gameLogic
+     * @returns {number}
+     */
+    getEasyMove(gameLogic) {
+        if (Math.random() < 0.4) {
+            return this.getSmartMove(gameLogic);
+        }
+        return this.getRandomMove(gameLogic);
+    }
+
+    /**
+     * Dificultad Media: 70% inteligente, 30% aleatorio
+     * @param {GameLogic} gameLogic
+     * @returns {number}
+     */
+    getMediumMove(gameLogic) {
+        if (Math.random() < 0.7) {
+            return this.getSmartMove(gameLogic);
+        }
+        return this.getRandomMove(gameLogic);
+    }
+
+    /**
+     * Dificultad Difícil: 95% inteligente, 5% aleatorio (casi siempre óptimo)
+     * @param {GameLogic} gameLogic
+     * @returns {number}
+     */
+    getHardMove(gameLogic) {
+        if (Math.random() < 0.95) {
+            return this.getOptimalMove(gameLogic);
+        }
+        return this.getSmartMove(gameLogic);
+    }
+
+    /**
+     * Dificultad Muy Difícil: Siempre movimiento óptimo usando minimax
+     * @param {GameLogic} gameLogic
+     * @returns {number}
+     */
+    getVeryHardMove(gameLogic) {
+        return this.getOptimalMove(gameLogic);
     }
 
     /**
@@ -33,20 +103,6 @@ class AIPlayer {
     getRandomMove(gameLogic) {
         const availableMoves = gameLogic.getAvailableMoves();
         return availableMoves[Math.floor(Math.random() * availableMoves.length)];
-    }
-
-    /**
-     * Dificultad Media: 70% inteligente, 30% aleatorio
-     * @param {GameLogic} gameLogic
-     * @returns {number}
-     */
-    getMediumMove(gameLogic) {
-        // 70% de probabilidad de usar estrategia inteligente
-        if (Math.random() < 0.7) {
-            return this.getSmartMove(gameLogic);
-        } else {
-            return this.getRandomMove(gameLogic);
-        }
     }
 
     /**
@@ -173,13 +229,19 @@ class AIPlayer {
      */
     getMoveDelay() {
         // Mayor variación en dificultades más bajas para parecer más "natural"
+        const baseDelay = this.difficultySettings[this.difficulty]?.moveDelay || this.moveDelay;
+        
         switch (this.difficulty) {
+            case 'very-easy':
+                return baseDelay + Math.random() * 1200;
             case 'easy':
-                return this.moveDelay + Math.random() * 1000;
+                return baseDelay + Math.random() * 1000;
             case 'medium':
-                return this.moveDelay + Math.random() * 500;
+                return baseDelay + Math.random() * 500;
             case 'hard':
-                return this.moveDelay + Math.random() * 200;
+                return baseDelay + Math.random() * 300;
+            case 'very-hard':
+                return baseDelay + Math.random() * 100;
             default:
                 return this.moveDelay;
         }
@@ -187,11 +249,17 @@ class AIPlayer {
 
     /**
      * Cambia la dificultad
-     * @param {string} difficulty - 'easy', 'medium' o 'hard'
+     * @param {string} difficulty - 'very-easy', 'easy', 'medium', 'hard' o 'very-hard'
      */
     setDifficulty(difficulty) {
-        if (['easy', 'medium', 'hard'].includes(difficulty)) {
+        const validDifficulties = ['very-easy', 'easy', 'medium', 'hard', 'very-hard'];
+        if (validDifficulties.includes(difficulty)) {
             this.difficulty = difficulty;
+        } else {
+            console.warn(`Dificultad inválida: ${difficulty}. Usando 'medium' por defecto.`);
+            this.difficulty = 'medium';
+        }
+    }
         }
     }
 }
