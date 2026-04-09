@@ -51,195 +51,79 @@ body {
     transition: background 0.35s ease, color 0.35s ease;
 }
 
-/* Pantalla de Inicio */
-.startup-container {
+.start-screen {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, var(--bg-color) 0%, #1a1f35 100%);
+    inset: 0;
     display: flex;
-    justify-content: center;
     align-items: center;
-    z-index: 1000;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--bg-color) 0%, var(--bg-end) 100%);
+    padding: 24px;
+    z-index: 5;
 }
 
-.startup-card {
+.start-card {
     background: var(--card-bg);
-    border-radius: 20px;
-    padding: 40px;
-    max-width: 500px;
-    width: 100%;
     border: 1px solid var(--border-color);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    animation: slideIn 0.5s ease-out;
+    border-radius: 24px;
+    padding: 32px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 20px 40px -18px var(--shadow-color);
 }
 
-.startup-header {
+.start-title {
     text-align: center;
-    margin-bottom: 35px;
-}
-
-.startup-header h1 {
-    font-size: 2.5rem;
-    margin-bottom: 10px;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    font-size: 2.2rem;
+    margin-bottom: 6px;
+    background: linear-gradient(120deg, var(--primary-color), var(--secondary-color));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 
-.startup-subtitle {
+.start-subtitle {
+    text-align: center;
     color: var(--text-muted);
-    font-size: 0.95rem;
+    margin-bottom: 20px;
 }
 
-.startup-form {
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
+.start-form {
+    display: grid;
+    gap: 12px;
 }
 
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.form-group label {
-    color: var(--text-color);
+.start-label {
     font-weight: 600;
-    font-size: 0.95rem;
+    color: var(--text-color);
 }
 
-.form-input {
-    padding: 12px 16px;
-    border: 2px solid var(--border-color);
+.start-input,
+.start-select {
+    padding: 10px 12px;
     border-radius: 10px;
-    background: rgba(30, 41, 59, 0.8);
+    border: 2px solid var(--border-color);
+    background: var(--card-bg);
     color: var(--text-color);
     font-size: 1rem;
-    transition: all 0.3s ease;
 }
 
-.form-input:focus {
+.start-input:focus,
+.start-select:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
-    background: rgba(30, 41, 59, 1);
+    box-shadow: 0 0 12px rgba(29, 78, 216, 0.2);
 }
 
-.form-input::placeholder {
-    color: var(--text-muted);
+.start-button {
+    margin-top: 8px;
 }
 
-.difficulty-options {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-}
-
-.difficulty-option {
-    cursor: pointer;
-    position: relative;
-}
-
-.difficulty-option input {
-    display: none;
-}
-
-.difficulty-card {
-    padding: 15px;
-    border: 2px solid var(--border-color);
-    border-radius: 12px;
-    text-align: center;
-    transition: all 0.3s ease;
-    background: rgba(30, 41, 59, 0.5);
-}
-
-.difficulty-emoji {
-    font-size: 2rem;
-    margin-bottom: 8px;
-}
-
-.difficulty-name {
-    font-weight: 600;
-    margin-bottom: 4px;
-    color: var(--text-color);
-}
-
-.difficulty-desc {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-}
-
-.difficulty-option input:checked ~ .difficulty-card {
-    border-color: var(--primary-color);
-    background: rgba(99, 102, 241, 0.2);
-    transform: scale(1.05);
-}
-
-.difficulty-option:hover .difficulty-card {
-    border-color: var(--primary-color);
-    background: rgba(99, 102, 241, 0.15);
-    transform: translateY(-2px);
-}
-
-.easy-card {
-    border-color: var(--success-color);
-}
-
-.easy-card:hover {
-    border-color: var(--success-color);
-    background: rgba(16, 185, 129, 0.1);
-}
-
-.difficulty-option input:checked ~ .easy-card {
-    border-color: var(--success-color);
-    background: rgba(16, 185, 129, 0.2);
-}
-
-.medium-card {
-    border-color: var(--warning-color);
-}
-
-.medium-card:hover {
-    border-color: var(--warning-color);
-    background: rgba(245, 158, 11, 0.1);
-}
-
-.difficulty-option input:checked ~ .medium-card {
-    border-color: var(--warning-color);
-    background: rgba(245, 158, 11, 0.2);
-}
-
-.hard-card {
-    border-color: var(--danger-color);
-}
-
-.hard-card:hover {
-    border-color: var(--danger-color);
-    background: rgba(239, 68, 68, 0.1);
-}
-
-.difficulty-option input:checked ~ .hard-card {
-    border-color: var(--danger-color);
-    background: rgba(239, 68, 68, 0.2);
-}
-
-.btn-large {
-    padding: 14px 28px;
-    font-size: 1.05rem;
-    font-weight: 600;
-}
-
-.game-container {
+.game-screen {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    padding: 20px;
 }
 
 .container {
@@ -287,6 +171,34 @@ body {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 15px;
+}
+
+.scoreboard {
+    margin-top: 15px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.score-item {
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+}
+
+.score-item .label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.score-item .value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
 }
 
 .stat {
@@ -464,6 +376,46 @@ body.dark .cell:hover:not(.disabled):not(.filled) {
 .cell.winner {
     border-color: var(--success-color);
     box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+}
+
+.win-message {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(15, 23, 42, 0.55);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+    z-index: 10;
+}
+
+.win-message.visible {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.win-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    padding: 24px 28px;
+    text-align: center;
+    box-shadow: 0 20px 40px -18px var(--shadow-color);
+    min-width: 240px;
+}
+
+.win-emoji {
+    font-size: 2.2rem;
+    margin-bottom: 8px;
+}
+
+.win-text {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: 16px;
 }
 
 .button-group {
