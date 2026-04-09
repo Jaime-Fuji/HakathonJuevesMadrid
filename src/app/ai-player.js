@@ -50,12 +50,12 @@ class AIPlayer {
     }
 
     /**
-     * Dificultad Difícil: Movimiento óptimo usando minimax
+     * Dificultad Difícil: Movimiento óptimo usando estrategia inteligente
      * @param {GameLogic} gameLogic
      * @returns {number}
      */
     getHardMove(gameLogic) {
-        return this.getOptimalMove(gameLogic);
+        return this.getSmartMove(gameLogic);
     }
 
     /**
