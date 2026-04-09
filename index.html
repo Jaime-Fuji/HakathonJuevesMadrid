@@ -30,6 +30,7 @@
 
                 <button type="submit" class="btn btn-primary start-button">Empezar</button>
                 <button type="button" id="openLeaderboard" class="btn btn-secondary">Ver leaderboard</button>
+                <button type="button" id="openCustomizer" class="btn btn-secondary">Personalizar tablero</button>
             </form>
         </div>
     </div>
@@ -46,7 +47,50 @@
         </div>
     </div>
 
+    <div id="customizerScreen" class="customizer-screen" style="display: none;">
+        <div class="customizer-card">
+            <div class="customizer-header">
+                <h2>🎨 Personalizacion</h2>
+                <button id="closeCustomizer" class="btn btn-secondary">Volver al menu</button>
+            </div>
+
+            <div class="board-customizer">
+                <label for="boardStyleSelect">Estilo del tablero:</label>
+                <select id="boardStyleSelect">
+                    <option value="glass" selected>Cristal</option>
+                    <option value="metal">Metal</option>
+                    <option value="classic">Clásico</option>
+                    <option value="neon">Neón</option>
+                    <option value="wood">Madera</option>
+                    <option value="custom">Personalizado</option>
+                </select>
+
+                <div class="color-controls">
+                    <div class="color-control">
+                        <label for="boardBgColor">Color tablero</label>
+                        <input type="color" id="boardBgColor" value="#e2eeff">
+                    </div>
+                    <div class="color-control">
+                        <label for="cellBgColor">Color casillas</label>
+                        <input type="color" id="cellBgColor" value="#ffffff">
+                    </div>
+                </div>
+
+                <button id="boardStyleResetBtn" class="btn btn-secondary">Reiniciar estilo</button>
+                <button id="playFromCustomizer" class="btn btn-primary customizer-play">Aplicar y jugar</button>
+            </div>
+        </div>
+    </div>
+
     <div id="gameScreen" class="game-screen" style="display: none;">
+    <div class="player-hud" id="playerHud">
+        <div class="player-hud-name" id="hudPlayerName">Jugador</div>
+        <div class="player-hud-level">Nivel <span id="hudPlayerLevel">1</span></div>
+        <div class="player-hud-bar">
+            <div class="player-hud-bar-fill" id="hudPlayerXpFill"></div>
+        </div>
+        <div class="player-hud-xp" id="hudPlayerXpText">0 / 100 XP</div>
+    </div>
     <div id="app" class="container">
         <header class="header">
             <div class="header-actions">
@@ -81,6 +125,17 @@
                 <div class="score-item">
                     <span class="label">Puntos Rival</span>
                     <span class="value" id="machinePoints">0</span>
+                </div>
+            </div>
+
+            <div class="level-panel">
+                <div class="level-item">
+                    <span class="label">Nivel</span>
+                    <span class="value" id="playerLevel">1</span>
+                </div>
+                <div class="level-item">
+                    <span class="label">XP</span>
+                    <span class="value" id="playerXp">0 / 100</span>
                 </div>
             </div>
         </div>
@@ -123,30 +178,6 @@
             </select>
         </div>
 
-        <div class="board-customizer">
-            <label for="boardStyleSelect">Estilo del tablero:</label>
-            <select id="boardStyleSelect">
-                <option value="glass" selected>Cristal</option>
-                <option value="metal">Metal</option>
-                <option value="classic">Clásico</option>
-                <option value="neon">Neón</option>
-                <option value="wood">Madera</option>
-                <option value="custom">Personalizado</option>
-            </select>
-
-            <div class="color-controls">
-                <div class="color-control">
-                    <label for="boardBgColor">Color tablero</label>
-                    <input type="color" id="boardBgColor" value="#e2eeff">
-                </div>
-                <div class="color-control">
-                    <label for="cellBgColor">Color casillas</label>
-                    <input type="color" id="cellBgColor" value="#ffffff">
-                </div>
-            </div>
-
-            <button id="boardStyleResetBtn" class="btn btn-secondary">Reiniciar estilo</button>
-        </div>
     </div>
     </div>
 
