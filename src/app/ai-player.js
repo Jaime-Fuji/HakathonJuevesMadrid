@@ -141,13 +141,22 @@ class AIPlayer {
         let bestScore = -Infinity;
 
         for (let move of availableMoves) {
+            // Guardar estado
+            const oldBoard = [...gameLogic.board];
+            const oldMachinePieces = [...gameLogic.machinePieces];
+            const oldPlayer = gameLogic.currentPlayer;
+            
+            // Simular movimiento
             gameLogic.board[move] = 'O';
+            gameLogic.machinePieces = [...gameLogic.machinePieces, move];
             gameLogic.currentPlayer = 'X';
             
             const score = gameLogic.minimax(0, false);
             
-            gameLogic.board[move] = null;
-            gameLogic.currentPlayer = 'O';
+            // Restaurar estado
+            gameLogic.board = oldBoard;
+            gameLogic.machinePieces = oldMachinePieces;
+            gameLogic.currentPlayer = oldPlayer;
 
             if (score > bestScore) {
                 bestScore = score;
