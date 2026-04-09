@@ -1,10 +1,44 @@
 /**
+ * StartScreen - Pantalla inicial del juego
+ */
+class StartScreen {
+    constructor() {
+        this.startForm = document.getElementById('startForm');
+        this.startScreen = document.getElementById('startScreen');
+        this.gameScreen = document.getElementById('gameScreen');
+        this.playerNameInput = document.getElementById('playerName');
+
+        this.initialize();
+    }
+
+    initialize() {
+        this.startForm.addEventListener('submit', (e) => this.handleSubmit(e));
+        this.playerNameInput.focus();
+    }
+
+    handleSubmit(e) {
+        e.preventDefault();
+
+        const playerName = this.playerNameInput.value.trim() || 'Jugador';
+        const difficulty = document.querySelector('input[name="difficulty"]:checked').value;
+
+        // Ocultar pantalla de inicio y mostrar juego
+        this.startScreen.style.display = 'none';
+        this.gameScreen.style.display = 'flex';
+
+        // Iniciar juego con los parámetros
+        new TicTacToeApp(playerName, difficulty);
+    }
+}
+
+/**
  * App - Controlador principal de la aplicación
  */
 class TicTacToeApp {
-    constructor() {
+    constructor(playerName = 'Jugador', difficulty = 'medium') {
+        this.playerName = playerName;
         this.gameLogic = new GameLogic();
-        this.aiPlayer = new AIPlayer('medium');
+        this.aiPlayer = new AIPlayer(difficulty);
         
         // Stats
         this.playerScore = 0;
@@ -12,6 +46,7 @@ class TicTacToeApp {
         this.drawScore = 0;
 
         // DOM Elements
+        this.appContainer = document.getElementById('app');
         this.boardElement = document.getElementById('gameBoard');
         this.cellElements = document.querySelectorAll('.cell');
         this.statusElement = document.getElementById('status');
@@ -24,7 +59,26 @@ class TicTacToeApp {
 
         this.aiThinking = false;
 
+        // Actualizar interfaz con el nombre y dificultad del jugador
+        this.updatePlayerInfo();
         this.initialize();
+    }
+
+    /**
+     * Actualiza la información del jugador en la interfaz
+     */
+    updatePlayerInfo() {
+        // Buscar el headerTitle y actualizarlo
+        const subtitle = document.querySelector('.subtitle');
+        if (subtitle) {
+            const difficulty = this.aiPlayer.difficulty;
+            const difficultyText = {
+                'easy': 'Fácil',
+                'medium': 'Medio',
+                'hard': 'Difícil'
+            };
+            subtitle.textContent = `${this.playerName} vs IA [${difficultyText[difficulty]}]`;
+        }
     }
 
     /**
@@ -103,7 +157,7 @@ class TicTacToeApp {
      */
     endGame(state) {
         if (state === 'X') {
-            this.statusElement.textContent = '🎉 ¡Ganaste!';
+            this.statusElement.textContent = `🎉 ¡${this.playerName} ganó!`;
             this.playerScore++;
             this.updateScoreDisplay();
         } else if (state === 'O') {
@@ -215,7 +269,7 @@ class TicTacToeApp {
     }
 }
 
-// Inicializa la aplicación cuando el DOM esté listo
+// Inicializa la pantalla de inicio cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-    new TicTacToeApp();
+    new StartScreen();
 });

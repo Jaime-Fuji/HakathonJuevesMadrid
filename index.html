@@ -7,7 +7,71 @@
     <link rel="stylesheet" href="src/assets/styles.css">
 </head>
 <body>
-    <div id="app" class="container">
+    <!-- Pantalla de Inicio -->
+    <div id="startScreen" class="startup-container">
+        <div class="startup-card">
+            <div class="startup-header">
+                <h1>🎮 Tres en Raya</h1>
+                <p class="startup-subtitle">Juega contra la máquina</p>
+            </div>
+
+            <form id="startForm" class="startup-form">
+                <!-- Input de nombre -->
+                <div class="form-group">
+                    <label for="playerName">¿Cómo te llamas?</label>
+                    <input 
+                        type="text" 
+                        id="playerName" 
+                        class="form-input" 
+                        placeholder="Ingresa tu nombre"
+                        required
+                    >
+                </div>
+
+                <!-- Selector de dificultad -->
+                <div class="form-group">
+                    <label>Elige el nivel de dificultad:</label>
+                    <div class="difficulty-options">
+                        <label class="difficulty-option">
+                            <input type="radio" name="difficulty" value="easy" checked>
+                            <div class="difficulty-card easy-card">
+                                <div class="difficulty-emoji">😊</div>
+                                <div class="difficulty-name">Fácil</div>
+                                <div class="difficulty-desc">Movimientos aleatorios</div>
+                            </div>
+                        </label>
+
+                        <label class="difficulty-option">
+                            <input type="radio" name="difficulty" value="medium">
+                            <div class="difficulty-card medium-card">
+                                <div class="difficulty-emoji">🤔</div>
+                                <div class="difficulty-name">Medio</div>
+                                <div class="difficulty-desc">70% inteligente</div>
+                            </div>
+                        </label>
+
+                        <label class="difficulty-option">
+                            <input type="radio" name="difficulty" value="hard">
+                            <div class="difficulty-card hard-card">
+                                <div class="difficulty-emoji">🧠</div>
+                                <div class="difficulty-name">Difícil</div>
+                                <div class="difficulty-desc">Casi imposible</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Botón de inicio -->
+                <button type="submit" class="btn btn-primary btn-large">
+                    ¡Empezar Juego!
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Pantalla del Juego -->
+    <div id="gameScreen" class="game-container" style="display: none;">
+        <div id="app" class="container">
         <header class="header">
             <h1>🎮 Tres en Raya</h1>
             <p class="subtitle">Juega contra la máquina</p>
@@ -52,14 +116,15 @@
         </div>
 
         <div class="difficulty">
-            <label for="difficultySelect">Dificultad:</label>
+            <label for="difficultySelect">Dificultad del juego:</label>
             <select id="difficultySelect">
                 <option value="easy">Fácil</option>
                 <option value="medium" selected>Medio</option>
                 <option value="hard">Difícil</option>
             </select>
         </div>
-    </div>
+        </div>
+        </div>
 
     <script src="src/app/game-logic.js"></script>
     <script src="src/app/ai-player.js"></script>
