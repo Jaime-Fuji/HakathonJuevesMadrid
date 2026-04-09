@@ -31,7 +31,28 @@ class StartScreen {
         this.closeCustomizerButton.addEventListener('click', () => this.closeCustomizer());
         this.playFromCustomizerButton.addEventListener('click', () => this.startGameFromMenu());
         this.updateDifficultyState();
+        
+        // Cargar nombre guardado
+        this.loadSavedPlayerName();
         this.playerNameInput.focus();
+    }
+
+    /**
+     * Carga el nombre guardado del jugador desde localStorage
+     */
+    loadSavedPlayerName() {
+        const savedName = localStorage.getItem('playerName');
+        if (savedName) {
+            this.playerNameInput.value = savedName;
+        }
+    }
+
+    /**
+     * Guarda el nombre del jugador en localStorage
+     * @param {string} name - Nombre del jugador
+     */
+    savePlayerName(name) {
+        localStorage.setItem('playerName', name);
     }
 
     updateDifficultyState() {
@@ -48,6 +69,9 @@ class StartScreen {
         const playerName = this.playerNameInput.value.trim() || 'Jugador';
         const gameMode = this.gameModeSelect.value;
         const difficulty = this.startDifficulty.value;
+
+        // Guardar nombre para próximas partidas
+        this.savePlayerName(playerName);
 
         this.startScreen.style.display = 'none';
         this.customizerScreen.style.display = 'none';
