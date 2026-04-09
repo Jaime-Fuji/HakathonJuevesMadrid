@@ -9,6 +9,9 @@
 <body>
     <div id="app" class="container">
         <header class="header">
+            <div class="header-actions">
+                <button id="themeToggle" class="btn btn-theme" aria-label="Cambiar tema" title="Cambiar entre modo claro y oscuro">🌙 Modo oscuro</button>
+            </div>
             <h1>🎮 Tres en Raya</h1>
             <p class="subtitle">Juega contra la máquina</p>
         </header>
@@ -58,6 +61,31 @@
                 <option value="medium" selected>Medio</option>
                 <option value="hard">Difícil</option>
             </select>
+        </div>
+
+        <div class="board-customizer">
+            <label for="boardStyleSelect">Estilo del tablero:</label>
+            <select id="boardStyleSelect">
+                <option value="glass" selected>Cristal</option>
+                <option value="metal">Metal</option>
+                <option value="classic">Clásico</option>
+                <option value="neon">Neón</option>
+                <option value="wood">Madera</option>
+                <option value="custom">Personalizado</option>
+            </select>
+
+            <div class="color-controls">
+                <div class="color-control">
+                    <label for="boardBgColor">Color tablero</label>
+                    <input type="color" id="boardBgColor" value="#e2eeff">
+                </div>
+                <div class="color-control">
+                    <label for="cellBgColor">Color casillas</label>
+                    <input type="color" id="cellBgColor" value="#ffffff">
+                </div>
+            </div>
+
+            <button id="boardStyleResetBtn" class="btn btn-secondary">Reiniciar estilo</button>
         </div>
     </div>
 

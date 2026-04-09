@@ -18,6 +18,11 @@ class TicTacToeApp {
         this.resetButton = document.getElementById('resetBtn');
         this.resetStatsButton = document.getElementById('resetStatsBtn');
         this.difficultySelect = document.getElementById('difficultySelect');
+        this.themeToggleButton = document.getElementById('themeToggle');
+        this.boardStyleSelect = document.getElementById('boardStyleSelect');
+        this.boardBgColorInput = document.getElementById('boardBgColor');
+        this.cellBgColorInput = document.getElementById('cellBgColor');
+        this.boardStyleResetButton = document.getElementById('boardStyleResetBtn');
         this.playerScoreElement = document.getElementById('playerScore');
         this.machineScoreElement = document.getElementById('machineScore');
         this.drawScoreElement = document.getElementById('drawScore');
@@ -31,9 +36,12 @@ class TicTacToeApp {
      * Inicializa la aplicación
      */
     initialize() {
+        this.loadTheme();
+        this.loadBoardStyle();
         this.addEventListeners();
         this.updateUI();
         this.loadStats();
+        this.updateThemeButton();
     }
 
     /**
@@ -46,9 +54,139 @@ class TicTacToeApp {
 
         this.resetButton.addEventListener('click', () => this.resetGame());
         this.resetStatsButton.addEventListener('click', () => this.resetStats());
+        this.themeToggleButton.addEventListener('click', () => this.toggleTheme());
+        this.boardStyleSelect.addEventListener('change', (e) => {
+            this.applyBoardStyle(e.target.value);
+        });
+        this.boardBgColorInput.addEventListener('input', () => this.handleCustomBoardColors());
+        this.cellBgColorInput.addEventListener('input', () => this.handleCustomBoardColors());
+        this.boardStyleResetButton.addEventListener('click', () => this.resetBoardStyle());
         this.difficultySelect.addEventListener('change', (e) => {
             this.aiPlayer.setDifficulty(e.target.value);
         });
+    }
+
+    /**
+     * Aplica un estilo de tablero y lo guarda
+     * @param {'glass'|'classic'|'neon'|'wood'|'custom'} style
+     */
+    applyBoardStyle(style) {
+        const styleClasses = ['board-style-metal', 'board-style-classic', 'board-style-neon', 'board-style-wood', 'board-style-custom'];
+        const validStyles = ['glass', 'metal', 'classic', 'neon', 'wood', 'custom'];
+        const nextStyle = validStyles.includes(style) ? style : 'glass';
+
+        this.boardElement.classList.remove(...styleClasses);
+
+        if (nextStyle !== 'glass') {
+            this.boardElement.classList.add(`board-style-${nextStyle}`);
+        }
+
+        this.boardStyleSelect.value = nextStyle;
+        this.toggleCustomColorInputs(nextStyle === 'custom');
+        localStorage.setItem('tictactoe_board_style', nextStyle);
+    }
+
+    /**
+     * Habilita o deshabilita inputs de color personalizado
+     * @param {boolean} enabled
+     */
+    toggleCustomColorInputs(enabled) {
+        this.boardBgColorInput.disabled = !enabled;
+        this.cellBgColorInput.disabled = !enabled;
+    }
+
+    /**
+     * Actualiza colores personalizados del tablero
+     */
+    handleCustomBoardColors() {
+        const boardColor = this.boardBgColorInput.value;
+        const cellColor = this.cellBgColorInput.value;
+
+        this.boardElement.style.setProperty('--board-custom-bg', boardColor);
+        this.boardElement.style.setProperty('--cell-custom-bg', cellColor);
+
+        localStorage.setItem('tictactoe_board_custom_colors', JSON.stringify({
+            boardColor,
+            cellColor
+        }));
+
+        if (this.boardStyleSelect.value !== 'custom') {
+            this.applyBoardStyle('custom');
+        }
+    }
+
+    /**
+     * Reinicia el estilo del tablero a valores por defecto
+     */
+    resetBoardStyle() {
+        this.boardBgColorInput.value = '#e2eeff';
+        this.cellBgColorInput.value = '#ffffff';
+        this.boardElement.style.setProperty('--board-custom-bg', '#e2eeff');
+        this.boardElement.style.setProperty('--cell-custom-bg', '#ffffff');
+        localStorage.removeItem('tictactoe_board_custom_colors');
+        this.applyBoardStyle('glass');
+    }
+
+    /**
+     * Carga el estilo del tablero guardado
+     */
+    loadBoardStyle() {
+        const savedStyle = localStorage.getItem('tictactoe_board_style') || 'glass';
+        const savedColors = localStorage.getItem('tictactoe_board_custom_colors');
+
+        if (savedColors) {
+            try {
+                const { boardColor, cellColor } = JSON.parse(savedColors);
+                if (boardColor) {
+                    this.boardBgColorInput.value = boardColor;
+                    this.boardElement.style.setProperty('--board-custom-bg', boardColor);
+                }
+                if (cellColor) {
+                    this.cellBgColorInput.value = cellColor;
+                    this.boardElement.style.setProperty('--cell-custom-bg', cellColor);
+                }
+            } catch (error) {
+                localStorage.removeItem('tictactoe_board_custom_colors');
+            }
+        }
+
+        this.applyBoardStyle(savedStyle);
+    }
+
+    /**
+     * Aplica un tema visual y lo persiste
+     * @param {'light'|'dark'} theme
+     */
+    setTheme(theme) {
+        document.body.classList.toggle('dark', theme === 'dark');
+        localStorage.setItem('tictactoe_theme', theme);
+        this.updateThemeButton();
+    }
+
+    /**
+     * Alterna entre modo claro y oscuro
+     */
+    toggleTheme() {
+        const isDark = document.body.classList.contains('dark');
+        this.setTheme(isDark ? 'light' : 'dark');
+    }
+
+    /**
+     * Carga el tema desde localStorage
+     */
+    loadTheme() {
+        const savedTheme = localStorage.getItem('tictactoe_theme');
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+        this.setTheme(theme);
+    }
+
+    /**
+     * Actualiza el texto del botón de tema
+     */
+    updateThemeButton() {
+        const isDark = document.body.classList.contains('dark');
+        this.themeToggleButton.textContent = isDark ? '☀️ Modo claro' : '🌙 Modo oscuro';
     }
 
     /**
